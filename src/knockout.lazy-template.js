@@ -2,6 +2,7 @@
 ===============================================================================
     Author:     Loïc Faure-Lacroix loicfl@gmail.com
     License:    MIT (http://opensource.org/licenses/mit-license.php)
+
     Description: Lazy template loading  Library for KnockoutJS
 ===============================================================================
     https://github.com/llacroix/knockout-lazy-template
@@ -47,8 +48,6 @@
 
     if (typeof (ko) === undefined) { throw 'Knockout is required, please ensure it is loaded before loading this validation plug-in'; }
     
-    var callbackQueue = {};
-
     var lazyTemplate,
         loader = function (templateName, callback) {
             callback(' ');
@@ -83,21 +82,11 @@
             if (template) {
                 loaded(true);
             } else {
-                //Check if there are any pending requests for that template
-                if(typeof callbackQueue[name] == 'undefined') {
-                    //If not make the request and add your callback to the pending list
-                    callbackQueue[name] = { context: [loaded] };
-                    loader(name, function (data) {
-                        appendTemplate(name, "\n" + data);
-                        //Once the request comes back it fires all the callbacks.
-                        while (callbackQueue[name].context.length > 0) {
-                            (callbackQueue[name].context.shift())(true);   
-                        }
-                    });
-                }else {
-                    //If there is just add your callback to the pending list.
-                    callbackQueue[name].context.push(loaded);
-                }
+                loader(name, function (data) {
+                    appendTemplate(name, "\n" + data);
+
+                    loaded(true);
+                });
             }
 
             return ko.computed(function () {
